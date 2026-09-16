@@ -173,35 +173,4 @@ export function beautifyHtml(text: string): string {
     return text
   }
 }
-
-export function beautifyXml(text: string): string {
-  try {
-    const parser = new DOMParser()
-    const doc = parser.parseFromString(text, "application/xml")
-    if (doc.querySelector("parsererror")) return text
-    return formatXmlNode(doc.documentElement, 0)
-  } catch {
-    return text
-  }
-}
-
-function formatXmlNode(node: Element, depth: number): string {
-  const indent = "  ".repeat(depth)
-  const attrs = Array.from(node.attributes)
-    .map((a) => ` ${a.name}="${a.value}"`)
-    .join("")
-  const children = Array.from(node.childNodes).filter(
-    (n) => n.nodeType === Node.ELEMENT_NODE,
-  ) as Element[]
-  const textContent = Array.from(node.childNodes)
-    .filter((n) => n.nodeType === Node.TEXT_NODE)
-    .map((n) => n.textContent?.trim() ?? "")
-    .join("")
-    .trim()
-  if (children.length === 0) {
-    if (textContent === "") return `${indent}<${node.tagName}${attrs}/>`
-    return `${indent}<${node.tagName}${attrs}>${textContent}</${node.tagName}>`
-  }
-  const inner = children.map((c) => formatXmlNode(c, depth + 1)).join("\n")
-  return `${indent}<${node.tagName}${attrs}>\n${inner}\n${indent}</${node.tagName}>`
-}
+export { beautifyXml } from "./beautifyXml"
