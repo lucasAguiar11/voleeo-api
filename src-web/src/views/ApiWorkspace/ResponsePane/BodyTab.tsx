@@ -1,6 +1,7 @@
 import { Spinner } from "@/components/ui/spinner"
 import { useThemeStore } from "@/store/theme"
 import type { HttpResponse } from "../../../../../packages/types/bindings"
+import { beautifyXml } from "../BodyTab/beautifyXml"
 import type { BodyLang } from "./bodyLang"
 import { isHtmlResponse } from "./bodyLang"
 import { CodeBody } from "./CodeBody"
@@ -29,9 +30,9 @@ export interface BodyInfo {
   isBinary: boolean
 }
 
-/** Detect language and pretty-print JSON once, so the tab-bar (which decides
- *  whether to show the find/filter buttons) and `BodyTab` agree without parsing
- *  twice. Memoize on `response` at the call site. */
+/** Detect language and pretty-print JSON/XML once, so the tab-bar (which decides
+ * whether to show the find/filter buttons) and `BodyTab` agree without parsing
+ * twice. Memoize on `response` at the call site. */
 export function analyzeBody(response: HttpResponse | null): BodyInfo {
   if (!response) return { rawText: "", lang: "plain", isBinary: false }
   if (!response.bodyIsText)
@@ -47,6 +48,13 @@ export function analyzeBody(response: HttpResponse | null): BodyInfo {
       return { rawText: pretty, lang: "json", isBinary: false }
     } catch {
       return { rawText: response.body, lang: "plain", isBinary: false }
+    }
+  }
+  if (detectedLang === "xml") {
+    return {
+      rawText: beautifyXml(response.body),
+      lang: "xml",
+      isBinary: false,
     }
   }
   return { rawText: response.body, lang: detectedLang, isBinary: false }
